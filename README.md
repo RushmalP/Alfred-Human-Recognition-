@@ -1,1 +1,1 @@
-# Alfred-Human-Recognition-
+Python Human Recognition program using mediapipe
