@@ -3,12 +3,14 @@ import mediapipe as mp
 
 mp_hands = mp.solutions.hands
 mp_face_detection = mp.solutions.face_detection
+mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils
 
 # For webcam input:
 cap = cv2.VideoCapture(0)
 with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands, \
-     mp_face_detection.FaceDetection(min_detection_confidence=0.5) as face_detection:
+     mp_face_detection.FaceDetection(min_detection_confidence=0.5) as face_detection, \
+     mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
 
   while cap.isOpened():
     success, image = cap.read()
@@ -21,6 +23,7 @@ with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) a
     image.flags.writeable = False
     hand_results = hands.process(image)
     face_results = face_detection.process(image)
+    pose_results = pose.process(image)
 
     # Draw the hand tracking annotations on the image.
     image.flags.writeable = True
@@ -34,9 +37,14 @@ with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) a
     if face_results.detections:
       for detection in face_results.detections:
         mp_drawing.draw_detection(image, detection)
+        
+    # Draw pose estimation annotations on the image.
+    if pose_results.pose_landmarks:
+        mp_drawing.draw_landmarks(
+            image, pose_results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
     
     # Flip the image horizontally for a selfie-view display.
-    cv2.imshow('MediaPipe Hands & Face', cv2.flip(image, 1))
+    cv2.imshow('MediaPipe Hands, Face & Pose', cv2.flip(image, 1))
     if cv2.waitKey(5) & 0xFF == 27:
       break
 
